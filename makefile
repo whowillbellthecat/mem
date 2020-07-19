@@ -1,10 +1,9 @@
-
 PREFIX=/usr/local/
 BIN=$(PREFIX)/bin/
 INSTALL=install
 
 mem: mem.pl
-	gplc mem.pl
+	gplc mem.pl --no-top-level
 
 clean:
 	rm -f mem

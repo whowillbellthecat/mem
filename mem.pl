@@ -14,7 +14,7 @@ pair(X,Y,X-Y). unzip(P,X0,Y0):-maplist(pair,X0,Y0,P). ids(I):-findall(I,repetiti
 repetitions(ID,Dates,Scores):-repetition(ID,_,_),findall(X-Y,repetition(ID,X,Y),R),keysort(R),unzip(R,Dates,Scores).
 review(N):-review(N,C,Q),maplist(pair,C,Q,R),save(R). review:-review([]).
 review(N,C,Q):-randomize,findall(X,due(X),X),append(X,N,D0),sort(D0,D),shuffle(D,C),maplist(testrecall,C,Q).
-auto:-readlog,carddir(X),directory_files(X,F),filter(pdf,F,Y),maplist(pdf,Z,Y),ids(I),subtract(Z,I,T),review(T).
+auto:-init,readlog,carddir(X),directory_files(X,F),filter(pdf,F,Y),maplist(pdf,Z,Y),ids(I),subtract(Z,I,T),review(T).
 readlog:-logfile(L),(file_exists(L)->consult(L);true).
 showcard(ID):-write_to_atom(I,ID),pdf(I,F),carddir(P),atom_join([P,F],'/',T),pdfviewer(V),spawn(V,[T]).
 pdfviewer(mupdf).
@@ -26,4 +26,4 @@ save(T0):-maplist(newrep,T0,T),logfile(L),open(L,append,S),maplist(portray_claus
 home(X,Y):-environ('HOME',H),atom_join([H,X],'/',Y).
 logfile(X):-memdir(M),atom_join([M,'dat.pl'],'/',X). carddir(X):-home('.cards',X). memdir(X):-home('.mem',X).
 init:-memdir(M),(file_exists(M);make_directory(M)),change_directory(M).
-:-initialization(init).
+:-initialization(auto).
