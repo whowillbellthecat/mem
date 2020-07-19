@@ -1,4 +1,5 @@
 :- dynamic(repetition/3).
+:- include('config.pl').
 pdf(X,Y):-atom_concat(X,'.pdf',Y). pdf(X) :- pdf(_,X). iota(0,[]). iota(N,[N0|R]):-N>0,N0 is N-1,iota(N0,R).
 filter(_,[],[]). filter(P,[X|Xs],Y):-(call(P,X)->Y=[X|Ys];Y=Ys),filter(P,Xs,Ys).
 atom_join([X],_,X). atom_join([X|Xs],C,R):-atom_join(Xs,C,Rs),atom_concat(X,C,R0),atom_concat(R0,Rs,R).
@@ -17,13 +18,10 @@ review(N,C,Q):-randomize,findall(X,due(X),X),append(X,N,D0),sort(D0,D),shuffle(D
 auto:-init,readlog,carddir(X),directory_files(X,F),filter(pdf,F,Y),maplist(pdf,Z,Y),ids(I),subtract(Z,I,T),review(T).
 readlog:-logfile(L),(file_exists(L)->consult(L);true).
 showcard(ID):-write_to_atom(I,ID),pdf(I,F),carddir(P),atom_join([P,F],'/',T),pdfviewer(V),spawn(V,[T]).
-pdfviewer(mupdf).
 testrecall(ID,Q):-showcard(ID),print('Q?: '),read_number(Q),Q=<5,Q>=0. %todo softfail on mupdf error
 times(_,0,[]). times(P,X,[R|Rs]) :- X>0, X0 is X-1, call(P,R),times(P,X0,Rs).
 shuffle(X,Y):-length(X,N),times(random,N,R),maplist(pair,R,X,R0),keysort(R0),unzip(R0,_,Y).
 newrep(I-Q,repetition(I,D,Q)):-day(D).
 save(T0):-maplist(newrep,T0,T),logfile(L),open(L,append,S),maplist(portray_clause(S),T),close(S).
-home(X,Y):-environ('HOME',H),atom_join([H,X],'/',Y).
-logfile(X):-memdir(M),atom_join([M,'dat.pl'],'/',X). carddir(X):-home('.cards',X). memdir(X):-home('.mem',X).
 init:-memdir(M),(file_exists(M);make_directory(M)),change_directory(M).
 :-initialization(auto).
