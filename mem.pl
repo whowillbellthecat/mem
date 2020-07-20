@@ -16,10 +16,11 @@ review(N):-randomize,findall(X,due(X),X),append(X,N,D0),sort(D0,D),shuffle(D,C),
 auto:-init,readlog,carddir(X),directory_files(X,F),filter(pdf,F,Y),maplist(pdf,Z,Y),ids(I),subtract(Z,I,T),review(T),save.
 readlog:-logfile(L),(file_exists(L)->consult(L);open(L,append,S),portray_clause(S,':-'(multifile(repetition/3))),close(S)).
 showcard(ID):-write_to_atom(I,ID),pdf(I,F),carddir(P),atom_join([P,F],'/',T),pdfviewer(V),spawn(V,[T]).
-testrecall(ID):-showcard(ID),print('Q?: '),read_number(Q),Q=<5,Q>=0,assertz(score(ID,Q)).
+rq(Q):-repeat,print('Q?: '),(catch(read_number(Q),_,true);get0(Q),Q= -1).
+testrecall(ID):-showcard(ID),rq(Q),number(Q),Q>=0,Q=<5,assertz(score(ID,Q)).
 times(_,0,[]). times(P,X,[R|Rs]):-X>0,X0 is X-1,call(P,R),times(P,X0,Rs).
 shuffle(X,Y):-length(X,N),times(random,N,R),maplist(pair,R,X,R0),keysort(R0),unzip(R0,_,Y).
 newrep(I-Q,repetition(I,D,Q)):-day(D).
 save:-findall(X-Y,score(X,Y),T0),maplist(newrep,T0,T),logfile(L),open(L,append,S),maplist(portray_clause(S),T),close(S).
-init:-memdir(M),(file_exists(M);make_directory(M)),change_directory(M).
+init:-memdir(M),(file_exists(M);make_directory(M)),change_directory(M),!.
 :-initialization(auto).
