@@ -1,5 +1,4 @@
-:- dynamic(repetition/3).
-:- include('config.pl').
+:- dynamic(repetition/3). :- dynamic(score/2). :- include('config.pl').
 pdf(X,Y):-atom_concat(X,'.pdf',Y). pdf(X) :- pdf(_,X). iota(0,[]). iota(N,[N0|R]):-N>0,N0 is N-1,iota(N0,R).
 filter(_,[],[]). filter(P,[X|Xs],Y):-(call(P,X)->Y=[X|Ys];Y=Ys),filter(P,Xs,Ys).
 atom_join([X],_,X). atom_join([X|Xs],C,R):-atom_join(Xs,C,Rs),atom_concat(X,C,R0),atom_concat(R0,Rs,R).
@@ -13,15 +12,14 @@ due(ID):-repetitions(ID,D,Q),intervals(Q,I),last(I,T),last(D,Last),day(Today),Du
 date(D):-popen('date +%s',read,S),read_integer(S,D),close(S). day(D):-date(S), D is floor(S/(24*60^2)).
 pair(X,Y,X-Y). unzip(P,X0,Y0):-maplist(pair,X0,Y0,P). ids(I):-findall(I,repetition(I,_,_),I0),sort(I0,I).
 repetitions(ID,Dates,Scores):-repetition(ID,_,_),findall(X-Y,repetition(ID,X,Y),R),keysort(R),unzip(R,Dates,Scores).
-review(N):-review(N,C,Q),maplist(pair,C,Q,R),save(R). review:-review([]).
-review(N,C,Q):-randomize,findall(X,due(X),X),append(X,N,D0),sort(D0,D),shuffle(D,C),maplist(testrecall,C,Q).
-auto:-init,readlog,carddir(X),directory_files(X,F),filter(pdf,F,Y),maplist(pdf,Z,Y),ids(I),subtract(Z,I,T),review(T).
+review(N):-randomize,findall(X,due(X),X),append(X,N,D0),sort(D0,D),shuffle(D,C),maplist(testrecall,C).
+auto:-init,readlog,carddir(X),directory_files(X,F),filter(pdf,F,Y),maplist(pdf,Z,Y),ids(I),subtract(Z,I,T),review(T),save.
 readlog:-logfile(L),(file_exists(L)->consult(L);true).
 showcard(ID):-write_to_atom(I,ID),pdf(I,F),carddir(P),atom_join([P,F],'/',T),pdfviewer(V),spawn(V,[T]).
-testrecall(ID,Q):-showcard(ID),print('Q?: '),read_number(Q),Q=<5,Q>=0. %todo softfail on mupdf error
-times(_,0,[]). times(P,X,[R|Rs]) :- X>0, X0 is X-1, call(P,R),times(P,X0,Rs).
+testrecall(ID):-showcard(ID),print('Q?: '),read_number(Q),Q=<5,Q>=0,assertz(score(ID,Q)).
+times(_,0,[]). times(P,X,[R|Rs]):-X>0,X0 is X-1,call(P,R),times(P,X0,Rs).
 shuffle(X,Y):-length(X,N),times(random,N,R),maplist(pair,R,X,R0),keysort(R0),unzip(R0,_,Y).
 newrep(I-Q,repetition(I,D,Q)):-day(D).
-save(T0):-maplist(newrep,T0,T),logfile(L),open(L,append,S),maplist(portray_clause(S),T),close(S).
+save:-findall(X-Y,score(X,Y),T0),maplist(newrep,T0,T),logfile(L),open(L,append,S),maplist(portray_clause(S),T),close(S).
 init:-memdir(M),(file_exists(M);make_directory(M)),change_directory(M).
 :-initialization(auto).
