@@ -1,4 +1,4 @@
-:- dynamic(repetition/3). :- dynamic(score/2). :- include('config.pl').
+:- dynamic(repetition/3). :- multifile(repetition/3). :- dynamic(score/2). :- include('config.pl').
 pdf(X,Y):-atom_concat(X,'.pdf',Y). pdf(X) :- pdf(_,X). iota(0,[]). iota(N,[N0|R]):-N>0,N0 is N-1,iota(N0,R).
 filter(_,[],[]). filter(P,[X|Xs],Y):-(call(P,X)->Y=[X|Ys];Y=Ys),filter(P,Xs,Ys).
 atom_join([X],_,X). atom_join([X|Xs],C,R):-atom_join(Xs,C,Rs),atom_concat(X,C,R0),atom_concat(R0,Rs,R).
@@ -14,7 +14,7 @@ pair(X,Y,X-Y). unzip(P,X0,Y0):-maplist(pair,X0,Y0,P). ids(I):-findall(I,repetiti
 repetitions(ID,Dates,Scores):-repetition(ID,_,_),findall(X-Y,repetition(ID,X,Y),R),keysort(R),unzip(R,Dates,Scores).
 review(N):-randomize,findall(X,due(X),X),append(X,N,D0),sort(D0,D),shuffle(D,C),maplist(testrecall,C).
 auto:-init,readlog,carddir(X),directory_files(X,F),filter(pdf,F,Y),maplist(pdf,Z,Y),ids(I),subtract(Z,I,T),review(T),save.
-readlog:-logfile(L),(file_exists(L)->consult(L);true).
+readlog:-logfile(L),(file_exists(L)->consult(L);open(L,append,S),portray_clause(S,':-'(multifile(repetition/3))),close(S)).
 showcard(ID):-write_to_atom(I,ID),pdf(I,F),carddir(P),atom_join([P,F],'/',T),pdfviewer(V),spawn(V,[T]).
 testrecall(ID):-showcard(ID),print('Q?: '),read_number(Q),Q=<5,Q>=0,assertz(score(ID,Q)).
 times(_,0,[]). times(P,X,[R|Rs]):-X>0,X0 is X-1,call(P,R),times(P,X0,Rs).
