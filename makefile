@@ -1,6 +1,6 @@
-PREFIX=/usr/local/
-BIN=$(PREFIX)/bin/
-INSTALL=install
+PREFIX?=/usr/local/
+BIN?=$(PREFIX)/bin/
+INSTALL?=install
 GPLC_FLAGS?=--no-top-level
 
 mem: *.pl
