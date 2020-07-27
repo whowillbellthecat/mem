@@ -1,0 +1,41 @@
+mem is a somewhat adhoc prolog implementation of SM-2 written for my own purposes. It may or
+may not be correct, and I may or may not rewrite it from scratch on whim. It has bugs and
+I might add more.
+
+mem is implemented using gprolog. When mem is run it consults a logfile (by default,
+'~/.mem/history.pl'), which is assumed to contain multifile predicate clauses of
+repetition/3 where repetition(ID,Day,Score) is taken to mean that card ID was reviewed
+on Day and recieved Score. ID can be an atom or numeric (but new repetitions written by
+mem always satisfy atom(ID)). Day is an integral count of day-approximate intervals since
+unix epoch (i.e, 'Day is UnixTime/(24*60^2)'). Score is an integral value in the range [0,5]
+with the following meanings, described by Wozniak[1]:
+	5 - perfect response
+	4 - correct response after a hesitation
+	3 - correct response recalled with serious difficulty
+	2 - incorrect response; where the correct one seemed easy to recall
+	1 - incorrect response; the correct one remembered
+	0 - complete blackout
+
+When mem is run, it will identify any cards due for review, including any new files in the
+cards directory (by default '~/.cards/') which end in '.pdf'. The list of these cards is
+shuffled and each is shown to the user (by default with mupdf) and after each card is shown
+the user is prompted for a score. After all cards have been shown the logfile is updated
+with them.
+
+All values stated as having a default are set in 'config.pl' and changeable, but unless everything
+is run as a script mem will have to be recompiled to do so. To build run `make`; there is an install
+target but PREFIX defaults to /usr/local.
+
+mem is quite incomplete; Notable omissions, limitations, and caveats include:
+--
+The manner of counting days is a lazy hack and doesn't correlate exactly with calendar days.
+SM-2 expects that low scoring cards are readded to the review queue until all cards recieve
+	a sufficiently high score at least once. mem doesn't bother to do this.
+mem is not very user friendly and doesn't bother catching errors or giving nicely formatted messages.
+mem doesn't help create the pdf files it relies on (try TeX).
+mem doesn't support different file extensions because I haven't bothered to implement code to do so, but
+	there is no particular reason for this (as changing the pdfviewer to cat and naming plain text files
+	with .pdf as a file extension would probably work as expected).
+
+--
+[1] : https://www.supermemo.com/en/archives1990-2015/english/ol/sm2
