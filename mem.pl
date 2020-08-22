@@ -1,10 +1,11 @@
 :- dynamic(repetition/3). :- multifile(repetition/3). :- dynamic(score/2). :- include('config.pl').
-pdf(X,Y):-atom_concat(X,'.pdf',Y). pdf(X) :- pdf(_,X). iota(0,[]). iota(N,[N0|R]):-N>0,N0 is N-1,iota(N0,R).
+pdf(X,Y):-atom_concat(X,'.pdf',Y). pdf(X) :- pdf(_,X).
 filter(_,[],[]). filter(P,[X|Xs],Y):-(call(P,X)->Y=[X|Ys];Y=Ys),filter(P,Xs,Ys).
 atom_join([X],_,X). atom_join([X|Xs],C,R):-atom_join(Xs,C,Rs),atom_concat(X,C,R0),atom_concat(R0,Rs,R).
 scan(_,[],Acc,[Acc]). scan(P,[X|Xs],A,[R|Rs]):-call(P,A,X,R),scan(P,Xs,R,Rs).
-monomial(V,C,D,R):-R is C*V^D. poly(V,P,R):-length(P,L),iota(L,D),maplist(monomial(V),P,D,R0),sum_list(R0,R).
-ef(E,Q,R):-poly(Q,[-0.02,0.28,-0.8],R0),R is min(2.5,max(1.3,E+R0)).
+monomial(V,C,D,R):-R is C*V^D.
+poly(V,P,R):-length(P,L),D0 #< L,fd_dom(D0,D),maplist(monomial(V),P,D,R0),sum_list(R0,R).
+ef(E,Q,R):-poly(Q,[-0.8,0.28,-0.02],R0),R is min(2.5,max(1.3,E+R0)).
 interval(0-_,_,1-1). interval(1-_,_,2-6).
 interval(2-I,Q-EF,0-R):-Q<3, R is ceiling(EF*I). interval(2-I,Q-EF,2-R):-Q>2, R is ceiling(EF*I).
 intervals(Q,I):-scan(ef,Q,2.5,[_|Es]),maplist(pair,Q,Es,L),scan(interval,L,0-0,X),unzip(X,_,I).
